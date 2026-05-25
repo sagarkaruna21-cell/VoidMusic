@@ -37,6 +37,8 @@ class Config:
 MONGO_URL = "mongodb+srv://username:password@cluster.mongodb.net/dbname"
 # or
 MONGO_URL = "mongodb://localhost:27017/dbname"
+import os
+MONGO_URL = os.environ.get("MONGO_URL", "")
         self.LANG_CODE = getenv("LANG_CODE", "en")
 
         self.COOKIES_URL = [
