@@ -22,5 +22,4 @@ CMD ["bash", "start"]
 #!/bin/bash
 python -m anony  # or whatever command starts your app
 RUN chmod +x start
-docker build -t macha-music-bot .
-docker run --rm -it macha-music-bot bash -c "deno --version && ffmpeg -version | head -1"
+
