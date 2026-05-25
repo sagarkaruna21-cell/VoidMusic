@@ -8,7 +8,7 @@ class Config:
         self.API_ID = int(getenv("33194036", 0))
         self.API_HASH = getenv("1086e25ee52f83c21d22939d3fbeaa89")
 
-        self.BOT_TOKEN = getenv("8302819078:AAFcz55UIJ1rboeFq3SuQon9ARjobKvgsAU")
+        self.BOT_TOKEN = getenv("8302819078:AAFXgriFJo8_lkgWNnpt68fY8pjhz6q8BiQ")
         self.MONGO_URL = getenv("mongodb+srv://sagarkaruna21_db_user:MACHAMUSICBOT@cluster0.xuasrtz.mongodb.net/?appName=Cluster0")
 
         self.LOGGER_ID = int(getenv("1003932641652", 0))
