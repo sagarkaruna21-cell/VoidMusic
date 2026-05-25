@@ -56,3 +56,44 @@ print(f"ffmpeg: {shutil.which('ffmpeg')}")
 #!/bin/bash
 python patch_env.py
 python -m anony
+import sys
+import types
+import os
+
+# Monkey-patch BEFORE importing anony
+fake_dir = types.ModuleType("anony.core.dir")
+fake_dir.__file__ = "/workspace/anony/core/dir.py"
+
+def ensure_dirs():
+    import pathlib
+    for d in ["/tmp/anony", "/workspace/data", "/workspace/cache"]:
+        pathlib.Path(d).mkdir(parents=True, exist_ok=True)
+
+fake_dir.ensure_dirs = ensure_dirs
+
+sys.modules["anony.core.dir"] = fake_dir
+sys.modules["anony.core"] = types.ModuleType("anony.core")
+sys.modules["anony.core"].dir = fake_dir
+
+# Now safe to import
+import anony
+
+# Start the bot - adjust based on anony's actual API
+if hasattr(anony, 'main'):
+    anony.main()
+elif hasattr(anony, 'run'):
+    anony.run()
+else:
+    # Try to find and run the bot
+    import importlib
+    for mod_name in ['anony.bot', 'anony.main', 'anony.core.bot']:
+        try:
+            mod = importlib.import_module(mod_name)
+            if hasattr(mod, 'run'):
+                mod.run()
+                break
+            if hasattr(mod, 'main'):
+                mod.main()
+                break
+        except ImportError:
+            continue
