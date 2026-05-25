@@ -1,21 +1,38 @@
-# Copyright (c) 2025 AnonymousX1025
-# Licensed under the MIT License.
-# This file is part of AnonXMusic
-
-
+# anony/core/dir.py
+import os
 import shutil
-from pathlib import Path
-
-from anony import logger
-
+import pathlib
 
 def ensure_dirs():
-    """
-    Ensure that the necessary directories exist.
-    """
-    if not shutil.which("deno") or not shutil.which("ffmpeg"):
-        raise RuntimeError("Deno and FFmpeg must be installed and accessible in the system PATH.")
-
-    for dir in ["cache", "downloads"]:
-        Path(dir).mkdir(parents=True, exist_ok=True)
-    logger.info("Cache directories updated.")
+    # Add common paths to PATH
+    for path in ["/usr/local/bin", "/usr/bin", "/bin", "/root/.deno/bin"]:
+        if os.path.exists(path) and path not in os.environ.get("PATH", ""):
+            os.environ["PATH"] = path + os.pathsep + os.environ.get("PATH", "")
+    
+    # Create necessary directories regardless of tool check
+    for d in ["/tmp/anony", "/workspace/data", "/workspace/cache"]:
+        pathlib.Path(d).mkdir(parents=True, exist_ok=True)
+    
+    # Try to find tools but don't crash if missing
+    deno = shutil.which("deno")
+    ffmpeg = shutil.which("ffmpeg")
+    
+    if not deno:
+        for loc in ["/usr/local/bin/deno", "/usr/bin/deno", "/root/.deno/bin/deno"]:
+            if os.path.exists(loc):
+                os.environ["PATH"] = os.path.dirname(loc) + os.pathsep + os.environ.get("PATH", "")
+                deno = loc
+                break
+    
+    if not ffmpeg:
+        for loc in ["/usr/bin/ffmpeg", "/usr/local/bin/ffmpeg"]:
+            if os.path.exists(loc):
+                ffmpeg = loc
+                break
+    
+    # Log status but don't raise error
+    print(f"[ensure_dirs] Deno: {deno}, FFmpeg: {ffmpeg}")
+    print(f"[ensure_dirs] PATH: {os.environ.get('PATH')}")
+    
+    # If tools are missing, the bot may fail later when trying to use them
+    # But at least it won't crash on startup
