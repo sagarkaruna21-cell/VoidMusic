@@ -34,7 +34,9 @@ class Config:
     
         self.THUMB_GEN: bool = getenv("THUMB_GEN", "True").lower() == "true"
         self.VIDEO_PLAY: bool = getenv("VIDEO_PLAY", "True").lower() == "true"
-
+MONGO_URL = "mongodb+srv://username:password@cluster.mongodb.net/dbname"
+# or
+MONGO_URL = "mongodb://localhost:27017/dbname"
         self.LANG_CODE = getenv("LANG_CODE", "en")
 
         self.COOKIES_URL = [
