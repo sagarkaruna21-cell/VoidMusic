@@ -18,16 +18,3 @@ COPY . .
 RUN chmod +x start
 
 CMD ["./start"]
-web: ./start
-#!/bin/bash
-set -e
-python bootstrap.py
-chmod +x start
-git add bootstrap.py start Procfile
-git commit -m "Add bootstrap with monkey patch for ensure_dirs"
-git push
-
-
-
-
-
