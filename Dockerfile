@@ -18,4 +18,4 @@ RUN pip install --upgrade pip && \
 
 COPY . .
 
-CMD ["python3", "-m", "anony"]
+CMD ["bash", "start"]
