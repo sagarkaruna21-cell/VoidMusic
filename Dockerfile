@@ -1,99 +1,20 @@
-#!/bin/bash
-apt-get update
-apt-get install -y ffmpeg curl
-curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh
-# anony/core/dir.py - Modified ensure_dirs()
-import os
-import shutil
+FROM python:3.10-slim
 
-def ensure_dirs():
-    # Add common paths to PATH
-    for path in ["/usr/local/bin", "/usr/bin", "/bin", "/root/.deno/bin"]:
-        if os.path.exists(path) and path not in os.environ.get("PATH", ""):
-            os.environ["PATH"] = path + os.pathsep + os.environ.get("PATH", "")
-    
-    deno = shutil.which("deno")
-    ffmpeg = shutil.which("ffmpeg")
-    
-    # Fallback: check common locations directly
-    if not deno:
-        for loc in ["/usr/local/bin/deno", "/usr/bin/deno", "/root/.deno/bin/deno"]:
-            if os.path.exists(loc):
-                os.environ["PATH"] = os.path.dirname(loc) + os.pathsep + os.environ.get("PATH", "")
-                deno = loc
-                break
-    
-    if not ffmpeg:
-        for loc in ["/usr/bin/ffmpeg", "/usr/local/bin/ffmpeg"]:
-            if os.path.exists(loc):
-                ffmpeg = loc
-                break
-    
-    # If still missing, try to install or provide better error
-    if not deno or not ffmpeg:
-        print(f"PATH: {os.environ.get('PATH', 'NOT SET')}")
-        print(f"Deno found: {deno}")
-        print(f"FFmpeg found: {ffmpeg}")
-        raise RuntimeError("Deno and FFmpeg must be installed and accessible in the system PATH.")
-        import os
-import shutil
+WORKDIR /workspace
 
-# Add all possible paths
-for path in ["/usr/local/bin", "/usr/bin", "/bin", "/root/.deno/bin"]:
-    if os.path.exists(path) and path not in os.environ.get("PATH", ""):
-        os.environ["PATH"] = path + os.pathsep + os.environ.get("PATH", "")
+COPY requirements.txt .
 
-# Try to find or create symlinks
-if not shutil.which("deno"):
-    for loc in ["/usr/local/bin/deno", "/root/.deno/bin/deno"]:
-        if os.path.exists(loc) and not os.path.exists("/usr/bin/deno"):
-            os.symlink(loc, "/usr/bin/deno")
-            break
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ffmpeg curl ca-certificates && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh
 
-print(f"PATH: {os.environ.get('PATH')}")
-print(f"deno: {shutil.which('deno')}")
-print(f"ffmpeg: {shutil.which('ffmpeg')}")
-#!/bin/bash
-python patch_env.py
-python -m anony
-import sys
-import types
-import os
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
-# Monkey-patch BEFORE importing anony
-fake_dir = types.ModuleType("anony.core.dir")
-fake_dir.__file__ = "/workspace/anony/core/dir.py"
+COPY . .
 
-def ensure_dirs():
-    import pathlib
-    for d in ["/tmp/anony", "/workspace/data", "/workspace/cache"]:
-        pathlib.Path(d).mkdir(parents=True, exist_ok=True)
+RUN chmod +x start
 
-fake_dir.ensure_dirs = ensure_dirs
-
-sys.modules["anony.core.dir"] = fake_dir
-sys.modules["anony.core"] = types.ModuleType("anony.core")
-sys.modules["anony.core"].dir = fake_dir
-
-# Now safe to import
-import anony
-
-# Start the bot - adjust based on anony's actual API
-if hasattr(anony, 'main'):
-    anony.main()
-elif hasattr(anony, 'run'):
-    anony.run()
-else:
-    # Try to find and run the bot
-    import importlib
-    for mod_name in ['anony.bot', 'anony.main', 'anony.core.bot']:
-        try:
-            mod = importlib.import_module(mod_name)
-            if hasattr(mod, 'run'):
-                mod.run()
-                break
-            if hasattr(mod, 'main'):
-                mod.main()
-                break
-        except ImportError:
-            continue
+CMD ["./start"]
